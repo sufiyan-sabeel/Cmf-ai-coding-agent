@@ -1,50 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <!-- Deep space background gradient -->
-    <radialGradient id="bgGrad" cx="50%" cy="40%" r="65%">
-      <stop offset="0%" stop-color="#1a1f3a"/>
-      <stop offset="50%" stop-color="#0d1117"/>
+    <!-- Deep space background -->
+    <radialGradient id="bg" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#161b22"/>
       <stop offset="100%" stop-color="#010409"/>
     </radialGradient>
 
-    <!-- Neon blue glow -->
-    <linearGradient id="blueNeon" x1="0%" y1="0%" x2="100%" y2="100%">
+    <!-- Primary gradient: blue → cyan → green -->
+    <linearGradient id="primary" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#58A6FF"/>
-      <stop offset="50%" stop-color="#79C0FF"/>
-      <stop offset="100%" stop-color="#58A6FF"/>
-    </linearGradient>
-
-    <!-- Neon green accent -->
-    <linearGradient id="greenNeon" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3FB950"/>
-      <stop offset="50%" stop-color="#56D364"/>
+      <stop offset="40%" stop-color="#79C0FF"/>
       <stop offset="100%" stop-color="#3FB950"/>
     </linearGradient>
 
-    <!-- Electric purple -->
-    <linearGradient id="purpleNeon" x1="0%" y1="0%" x2="100%" y2="100%">
+    <!-- Accent gradient: purple → pink -->
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#A371F7"/>
-      <stop offset="50%" stop-color="#BC8CFF"/>
-      <stop offset="100%" stop-color="#A371F7"/>
+      <stop offset="100%" stop-color="#F778BA"/>
     </linearGradient>
 
-    <!-- Horizontal gradient for text -->
+    <!-- Text gradient -->
     <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#58A6FF"/>
-      <stop offset="35%" stop-color="#A371F7"/>
-      <stop offset="65%" stop-color="#F778BA"/>
+      <stop offset="30%" stop-color="#A371F7"/>
+      <stop offset="60%" stop-color="#F778BA"/>
       <stop offset="100%" stop-color="#3FB950"/>
     </linearGradient>
 
-    <!-- Glow filters -->
-    <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    <!-- Glow effects -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
 
-    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur1"/>
-      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur2"/>
+    <filter id="glowStrong" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur2"/>
       <feMerge>
         <feMergeNode in="blur1"/>
         <feMergeNode in="blur2"/>
@@ -52,111 +46,125 @@
       </feMerge>
     </filter>
 
-    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+    <filter id="glowSoft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20"/>
     </filter>
 
     <!-- Clip for rounded corners -->
-    <clipPath id="roundedBg">
-      <rect x="0" y="0" width="512" height="512" rx="80" ry="80"/>
+    <clipPath id="rounded">
+      <rect x="0" y="0" width="1024" height="1024" rx="160" ry="160"/>
     </clipPath>
   </defs>
 
-  <g clip-path="url(#roundedBg)">
+  <g clip-path="url(#rounded)">
     <!-- Background -->
-    <rect width="512" height="512" fill="url(#bgGrad)"/>
+    <rect width="1024" height="1024" fill="url(#bg)"/>
 
-    <!-- Subtle grid lines -->
-    <g opacity="0.06" stroke="#58A6FF" stroke-width="0.5">
-      <line x1="0" y1="128" x2="512" y2="128"/>
-      <line x1="0" y1="256" x2="512" y2="256"/>
-      <line x1="0" y1="384" x2="512" y2="384"/>
-      <line x1="128" y1="0" x2="128" y2="512"/>
-      <line x1="256" y1="0" x2="256" y2="512"/>
-      <line x1="384" y1="0" x2="384" y2="512"/>
+    <!-- Ambient glow spots -->
+    <circle cx="300" cy="350" r="200" fill="#58A6FF" opacity="0.03" filter="url(#glowSoft)"/>
+    <circle cx="724" cy="350" r="200" fill="#3FB950" opacity="0.03" filter="url(#glowSoft)"/>
+    <circle cx="512" cy="280" r="150" fill="#A371F7" opacity="0.02" filter="url(#glowSoft)"/>
+
+    <!-- Subtle dot grid -->
+    <g opacity="0.04" fill="#58A6FF">
+      <circle cx="100" cy="100" r="1.5"/><circle cx="200" cy="100" r="1.5"/><circle cx="300" cy="100" r="1.5"/><circle cx="400" cy="100" r="1.5"/><circle cx="500" cy="100" r="1.5"/><circle cx="600" cy="100" r="1.5"/><circle cx="700" cy="100" r="1.5"/><circle cx="800" cy="100" r="1.5"/><circle cx="900" cy="100" r="1.5"/>
+      <circle cx="100" cy="200" r="1.5"/><circle cx="200" cy="200" r="1.5"/><circle cx="300" cy="200" r="1.5"/><circle cx="400" cy="200" r="1.5"/><circle cx="500" cy="200" r="1.5"/><circle cx="600" cy="200" r="1.5"/><circle cx="700" cy="200" r="1.5"/><circle cx="800" cy="200" r="1.5"/><circle cx="900" cy="200" r="1.5"/>
+      <circle cx="100" cy="300" r="1.5"/><circle cx="200" cy="300" r="1.5"/><circle cx="300" cy="300" r="1.5"/><circle cx="400" cy="300" r="1.5"/><circle cx="500" cy="300" r="1.5"/><circle cx="600" cy="300" r="1.5"/><circle cx="700" cy="300" r="1.5"/><circle cx="800" cy="300" r="1.5"/><circle cx="900" cy="300" r="1.5"/>
+      <circle cx="100" cy="400" r="1.5"/><circle cx="200" cy="400" r="1.5"/><circle cx="300" cy="400" r="1.5"/><circle cx="400" cy="400" r="1.5"/><circle cx="500" cy="400" r="1.5"/><circle cx="600" cy="400" r="1.5"/><circle cx="700" cy="400" r="1.5"/><circle cx="800" cy="400" r="1.5"/><circle cx="900" cy="400" r="1.5"/>
     </g>
 
-    <!-- Orbital rings -->
-    <ellipse cx="256" cy="210" rx="160" ry="50" fill="none" stroke="url(#blueNeon)" stroke-width="1" opacity="0.15" transform="rotate(-20 256 210)"/>
-    <ellipse cx="256" cy="210" rx="160" ry="50" fill="none" stroke="url(#greenNeon)" stroke-width="1" opacity="0.15" transform="rotate(20 256 210)"/>
+    <!-- Orbital rings (subtle) -->
+    <ellipse cx="512" cy="420" rx="300" ry="90" fill="none" stroke="#58A6FF" stroke-width="1" opacity="0.08" transform="rotate(-15 512 420)"/>
+    <ellipse cx="512" cy="420" rx="300" ry="90" fill="none" stroke="#3FB950" stroke-width="1" opacity="0.08" transform="rotate(15 512 420)"/>
+    <ellipse cx="512" cy="420" rx="250" ry="75" fill="none" stroke="#A371F7" stroke-width="0.8" opacity="0.06" transform="rotate(0 512 420)"/>
 
-    <!-- Central glowing orb -->
-    <circle cx="256" cy="210" r="60" fill="none" stroke="url(#blueNeon)" stroke-width="2" opacity="0.1"/>
-    <circle cx="256" cy="210" r="40" fill="none" stroke="url(#purpleNeon)" stroke-width="1.5" opacity="0.15"/>
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- CODE BRACKETS with neon glow               -->
+    <!-- ═══════════════════════════════════════════ -->
 
-    <!-- Code brackets with neon glow -->
     <!-- Left bracket < -->
-    <g filter="url(#strongGlow)">
-      <path d="M150 165 L105 210 L150 255"
-            stroke="url(#blueNeon)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <g filter="url(#glowStrong)">
+      <path d="M280 330 L200 420 L280 510"
+            stroke="url(#primary)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     </g>
 
     <!-- Right bracket > -->
-    <g filter="url(#strongGlow)">
-      <path d="M362 165 L407 210 L362 255"
-            stroke="url(#greenNeon)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <g filter="url(#glowStrong)">
+      <path d="M744 330 L824 420 L744 510"
+            stroke="url(#primary)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     </g>
 
     <!-- Center slash / -->
-    <g filter="url(#strongGlow)">
-      <line x1="300" y1="155" x2="212" y2="265" stroke="url(#textGrad)" stroke-width="10" stroke-linecap="round"/>
+    <g filter="url(#glowStrong)">
+      <line x1="620" y1="310" x2="404" y2="530"
+            stroke="url(#textGrad)" stroke-width="18" stroke-linecap="round"/>
     </g>
 
-    <!-- Pulse dot -->
-    <g filter="url(#strongGlow)">
-      <circle cx="310" cy="150" r="7" fill="#F778BA"/>
-      <circle cx="310" cy="150" r="12" fill="none" stroke="#F778BA" stroke-width="1" opacity="0.4"/>
+    <!-- Accent dot -->
+    <g filter="url(#glowStrong)">
+      <circle cx="640" cy="300" r="12" fill="#F778BA"/>
+      <circle cx="640" cy="300" r="20" fill="none" stroke="#F778BA" stroke-width="1.5" opacity="0.3"/>
+      <circle cx="640" cy="300" r="30" fill="none" stroke="#F778BA" stroke-width="0.8" opacity="0.15"/>
     </g>
 
-    <!-- AI neural network constellation -->
-    <g filter="url(#neonGlow)" opacity="0.9">
-      <!-- Main nodes -->
-      <circle cx="190" cy="310" r="5" fill="#58A6FF"/>
-      <circle cx="256" cy="290" r="6" fill="#A371F7"/>
-      <circle cx="322" cy="310" r="5" fill="#3FB950"/>
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- AI NEURAL NETWORK CONSTELLATION             -->
+    <!-- ═══════════════════════════════════════════ -->
+    <g filter="url(#glow)" opacity="0.85">
+      <!-- Primary nodes -->
+      <circle cx="370" cy="600" r="9" fill="#58A6FF"/>
+      <circle cx="512" cy="570" r="11" fill="#A371F7"/>
+      <circle cx="654" cy="600" r="9" fill="#3FB950"/>
 
       <!-- Secondary nodes -->
-      <circle cx="160" cy="345" r="4" fill="#58A6FF" opacity="0.7"/>
-      <circle cx="220" cy="350" r="3.5" fill="#79C0FF" opacity="0.6"/>
-      <circle cx="292" cy="350" r="3.5" fill="#56D364" opacity="0.6"/>
-      <circle cx="352" cy="345" r="4" fill="#3FB950" opacity="0.7"/>
+      <circle cx="300" cy="660" r="6" fill="#58A6FF" opacity="0.7"/>
+      <circle cx="420" cy="670" r="5" fill="#79C0FF" opacity="0.6"/>
+      <circle cx="512" cy="685" r="5" fill="#BC8CFF" opacity="0.6"/>
+      <circle cx="604" cy="670" r="5" fill="#56D364" opacity="0.6"/>
+      <circle cx="724" cy="660" r="6" fill="#3FB950" opacity="0.7"/>
 
-      <!-- Tiny sparkles -->
-      <circle cx="140" cy="325" r="1.5" fill="#BC8CFF" opacity="0.5"/>
-      <circle cx="372" cy="325" r="1.5" fill="#F778BA" opacity="0.5"/>
-      <circle cx="256" cy="370" r="2" fill="#58A6FF" opacity="0.4"/>
+      <!-- Tertiary nodes -->
+      <circle cx="250" cy="630" r="3" fill="#BC8CFF" opacity="0.4"/>
+      <circle cx="774" cy="630" r="3" fill="#F778BA" opacity="0.4"/>
+      <circle cx="512" cy="710" r="3.5" fill="#58A6FF" opacity="0.35"/>
 
       <!-- Connection lines -->
-      <line x1="190" y1="310" x2="256" y2="290" stroke="#58A6FF" stroke-width="1.2" opacity="0.3"/>
-      <line x1="256" y1="290" x2="322" y2="310" stroke="#3FB950" stroke-width="1.2" opacity="0.3"/>
-      <line x1="190" y1="310" x2="160" y2="345" stroke="#58A6FF" stroke-width="0.8" opacity="0.2"/>
-      <line x1="322" y1="310" x2="352" y2="345" stroke="#3FB950" stroke-width="0.8" opacity="0.2"/>
-      <line x1="160" y1="345" x2="220" y2="350" stroke="#79C0FF" stroke-width="0.6" opacity="0.15"/>
-      <line x1="220" y1="350" x2="292" y2="350" stroke="#56D364" stroke-width="0.6" opacity="0.15"/>
-      <line x1="292" y1="350" x2="352" y2="345" stroke="#3FB950" stroke-width="0.6" opacity="0.15"/>
-      <line x1="190" y1="310" x2="140" y2="325" stroke="#BC8CFF" stroke-width="0.5" opacity="0.15"/>
-      <line x1="322" y1="310" x2="372" y2="325" stroke="#F778BA" stroke-width="0.5" opacity="0.15"/>
+      <line x1="370" y1="600" x2="512" y2="570" stroke="#58A6FF" stroke-width="2" opacity="0.25"/>
+      <line x1="512" y1="570" x2="654" y2="600" stroke="#3FB950" stroke-width="2" opacity="0.25"/>
+      <line x1="370" y1="600" x2="300" y2="660" stroke="#58A6FF" stroke-width="1.5" opacity="0.15"/>
+      <line x1="654" y1="600" x2="724" y2="660" stroke="#3FB950" stroke-width="1.5" opacity="0.15"/>
+      <line x1="300" y1="660" x2="420" y2="670" stroke="#79C0FF" stroke-width="1" opacity="0.12"/>
+      <line x1="420" y1="670" x2="512" y2="685" stroke="#BC8CFF" stroke-width="1" opacity="0.12"/>
+      <line x1="512" y1="685" x2="604" y2="670" stroke="#56D364" stroke-width="1" opacity="0.12"/>
+      <line x1="604" y1="670" x2="724" y2="660" stroke="#3FB950" stroke-width="1" opacity="0.12"/>
+      <line x1="370" y1="600" x2="250" y2="630" stroke="#BC8CFF" stroke-width="0.8" opacity="0.1"/>
+      <line x1="654" y1="600" x2="774" y2="630" stroke="#F778BA" stroke-width="0.8" opacity="0.1"/>
+      <line x1="512" y1="685" x2="512" y2="710" stroke="#58A6FF" stroke-width="0.8" opacity="0.1"/>
     </g>
 
-    <!-- CMF text with gradient -->
-    <text x="256" y="415" text-anchor="middle"
-          font-family="'SF Pro Display', 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif"
-          font-size="58" font-weight="800" fill="url(#textGrad)" letter-spacing="8"
-          filter="url(#softGlow)">CMF</text>
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TEXT                                         -->
+    <!-- ═══════════════════════════════════════════ -->
+
+    <!-- CMF main title -->
+    <text x="512" y="820" text-anchor="middle"
+          font-family="'SF Pro Display','Inter','Segoe UI','Helvetica Neue',Arial,sans-serif"
+          font-size="110" font-weight="900" fill="url(#textGrad)" letter-spacing="16"
+          filter="url(#glow)">CMF</text>
 
     <!-- CODING AGENT subtitle -->
-    <text x="256" y="448" text-anchor="middle"
-          font-family="'SF Pro Text', 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif"
-          font-size="16" font-weight="500" fill="#8B949E" letter-spacing="8"
-          opacity="0.8">CODING AGENT</text>
+    <text x="512" y="875" text-anchor="middle"
+          font-family="'SF Pro Text','Inter','Segoe UI','Helvetica Neue',Arial,sans-serif"
+          font-size="32" font-weight="500" fill="#8B949E" letter-spacing="14"
+          opacity="0.75">CODING AGENT</text>
 
-    <!-- Version tag -->
-    <text x="256" y="478" text-anchor="middle"
-          font-family="'SF Mono', 'Fira Code', 'Consolas', monospace"
-          font-size="11" font-weight="400" fill="#484F58" letter-spacing="2">v1.0.0</text>
+    <!-- Decorative line -->
+    <line x1="340" y1="895" x2="684" y2="895" stroke="url(#primary)" stroke-width="1" opacity="0.2"/>
+
+    <!-- Tagline -->
+    <text x="512" y="935" text-anchor="middle"
+          font-family="'SF Mono','Fira Code','Consolas',monospace"
+          font-size="18" font-weight="400" fill="#484F58" letter-spacing="3"
+          opacity="0.6">AI-POWERED MOBILE CODING WORKSPACE</text>
   </g>
 </svg>
