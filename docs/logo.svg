@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0D1117;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#161B22;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#58A6FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3FB950;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#58A6FF;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#3FB950;stop-opacity:0.1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#58A6FF" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect x="0" y="0" width="512" height="512" rx="96" ry="96" fill="url(#bg)"/>
+
+  <!-- Subtle glow ring -->
+  <circle cx="256" cy="220" r="140" fill="none" stroke="url(#glow)" stroke-width="2" opacity="0.5"/>
+
+  <!-- Terminal/code bracket - left -->
+  <path d="M120 180 L80 220 L120 260" stroke="url(#accent)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#shadow)"/>
+
+  <!-- Terminal/code bracket - right -->
+  <path d="M392 180 L432 220 L392 260" stroke="url(#accent)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#shadow)"/>
+
+  <!-- Center slash / code symbol -->
+  <line x1="280" y1="165" x2="232" y2="275" stroke="url(#accent)" stroke-width="12" stroke-linecap="round" filter="url(#shadow)"/>
+
+  <!-- Dot accent top-right -->
+  <circle cx="310" cy="160" r="8" fill="#3FB950" filter="url(#shadow)"/>
+
+  <!-- AI neural nodes -->
+  <circle cx="200" cy="310" r="6" fill="#58A6FF" opacity="0.8"/>
+  <circle cx="256" cy="295" r="6" fill="#58A6FF" opacity="0.9"/>
+  <circle cx="312" cy="310" r="6" fill="#58A6FF" opacity="0.8"/>
+  <circle cx="228" cy="340" r="5" fill="#3FB950" opacity="0.7"/>
+  <circle cx="284" cy="340" r="5" fill="#3FB950" opacity="0.7"/>
+
+  <!-- Neural connections -->
+  <line x1="200" y1="310" x2="256" y2="295" stroke="#58A6FF" stroke-width="1.5" opacity="0.4"/>
+  <line x1="256" y1="295" x2="312" y2="310" stroke="#58A6FF" stroke-width="1.5" opacity="0.4"/>
+  <line x1="200" y1="310" x2="228" y2="340" stroke="#3FB950" stroke-width="1.5" opacity="0.3"/>
+  <line x1="312" y1="310" x2="284" y2="340" stroke="#3FB950" stroke-width="1.5" opacity="0.3"/>
+  <line x1="228" y1="340" x2="284" y2="340" stroke="#3FB950" stroke-width="1.5" opacity="0.3"/>
+
+  <!-- CMF text -->
+  <text x="256" y="405" text-anchor="middle" font-family="'SF Pro Display', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="700" fill="url(#accent)" letter-spacing="6">CMF</text>
+
+  <!-- CODING AGENT subtitle -->
+  <text x="256" y="440" text-anchor="middle" font-family="'SF Pro Text', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#8B949E" letter-spacing="4">CODING AGENT</text>
+</svg>

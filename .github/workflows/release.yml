@@ -16,7 +16,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
     - name: Checkout repository
@@ -46,7 +46,6 @@ jobs:
 
     - name: Install Android NDK and CMake
       run: |
-        # ubuntu-latest has Android SDK at $ANDROID_HOME
         export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
         yes | sdkmanager --licenses > /dev/null 2>&1 || true
         sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
@@ -67,58 +66,100 @@ jobs:
     - name: Create placeholder runtime assets for online build
       run: |
         mkdir -p dist/runtime-bundles
+        # The online variant's mergeAssets depends on prepareBundledAgentAssets.
+        # Create a zero-byte placeholder so the Sync task succeeds;
+        # the real bundle is downloaded at install time.
         touch dist/runtime-bundles/pocketdev-agy-arm64-2026.09.1.tar.zst
 
     - name: Run unit tests
       run: ./gradlew testOnlineDebugUnitTest --no-daemon
 
-    - name: Build release APK
+    # ── Build both Online and Offline release APKs ─────────────────────
+    - name: Build Online release APK
       run: ./gradlew assembleOnlineRelease --no-daemon
 
-    - name: Locate and verify APK
+    - name: Build Offline release APK
+      run: ./gradlew assembleOfflineRelease --no-daemon
+
+    # ── Locate, rename, and verify APKs ────────────────────────────────
+    - name: Locate and verify APKs
       id: apk
       run: |
         mkdir -p release
 
-        APK_DIR="app/build/outputs/apk/online/release"
-        if [ ! -d "$APK_DIR" ]; then
-          echo "::error::APK output directory not found: $APK_DIR"
+        # --- Online APK ---
+        ONLINE_DIR="app/build/outputs/apk/online/release"
+        if [ ! -d "$ONLINE_DIR" ]; then
+          echo "::error::Online APK output directory not found: $ONLINE_DIR"
           find app/build/outputs -type f -name '*.apk' 2>/dev/null || echo "No APK files found"
           exit 1
         fi
 
-        APK=$(find "$APK_DIR" -name '*.apk' ! -name '*unsigned*' ! -name '*aligned*' | head -1)
-
-        if [ -z "$APK" ] || [ ! -f "$APK" ]; then
-          APK=$(find "$APK_DIR" -name '*.apk' | head -1)
-          if [ -z "$APK" ] || [ ! -f "$APK" ]; then
-            echo "::error::No APK files found"
-            exit 1
-          fi
+        ONLINE_APK=$(find "$ONLINE_DIR" -name '*.apk' ! -name '*unsigned*' ! -name '*aligned*' | head -1)
+        if [ -z "$ONLINE_APK" ] || [ ! -f "$ONLINE_APK" ]; then
+          ONLINE_APK=$(find "$ONLINE_DIR" -name '*.apk' | head -1)
         fi
-
-        SIZE=$(stat -c%s "$APK")
-        if [ "$SIZE" -eq 0 ]; then
-          echo "::error::APK file is empty"
+        if [ -z "$ONLINE_APK" ] || [ ! -f "$ONLINE_APK" ]; then
+          echo "::error::No Online APK found"
           exit 1
         fi
 
-        MAGIC=$(xxd -l 2 -p "$APK")
+        ONLINE_SIZE=$(stat -c%s "$ONLINE_APK")
+        MAGIC=$(xxd -l 2 -p "$ONLINE_APK")
         if [ "$MAGIC" != "504b" ]; then
-          echo "::error::File is not a valid APK"
+          echo "::error::Online APK is not a valid zip/APK (magic: $MAGIC)"
           exit 1
         fi
 
-        FNAME="CMF-Coding-Agent-v${{ steps.version.outputs.VERSION }}.apk"
-        cp "$APK" "release/$FNAME"
-        FINAL_SIZE=$(stat -c%s "release/$FNAME")
+        ONLINE_FNAME="CMF-Coding-Agent-Online-v${{ steps.version.outputs.VERSION }}.apk"
+        cp "$ONLINE_APK" "release/$ONLINE_FNAME"
+        ONLINE_FINAL=$(stat -c%s "release/$ONLINE_FNAME")
 
-        echo "path=release/$FNAME" >> "$GITHUB_OUTPUT"
-        echo "filename=$FNAME"     >> "$GITHUB_OUTPUT"
-        echo "size=$FINAL_SIZE"    >> "$GITHUB_OUTPUT"
+        echo "online_path=release/$ONLINE_FNAME"       >> "$GITHUB_OUTPUT"
+        echo "online_filename=$ONLINE_FNAME"           >> "$GITHUB_OUTPUT"
+        echo "online_size=$ONLINE_FINAL"               >> "$GITHUB_OUTPUT"
+        echo "✅ Online APK: $ONLINE_FNAME ($ONLINE_FINAL bytes)"
 
-        echo "APK verified: $FNAME ($FINAL_SIZE bytes)"
+        # --- Offline APK ---
+        OFFLINE_DIR="app/build/outputs/apk/offline/release"
+        if [ ! -d "$OFFLINE_DIR" ]; then
+          echo "::error::Offline APK output directory not found: $OFFLINE_DIR"
+          find app/build/outputs -type f -name '*.apk' 2>/dev/null || echo "No APK files found"
+          exit 1
+        fi
 
+        OFFLINE_APK=$(find "$OFFLINE_DIR" -name '*.apk' ! -name '*unsigned*' ! -name '*aligned*' | head -1)
+        if [ -z "$OFFLINE_APK" ] || [ ! -f "$OFFLINE_APK" ]; then
+          OFFLINE_APK=$(find "$OFFLINE_DIR" -name '*.apk' | head -1)
+        fi
+        if [ -z "$OFFLINE_APK" ] || [ ! -f "$OFFLINE_APK" ]; then
+          echo "::error::No Offline APK found"
+          exit 1
+        fi
+
+        OFFLINE_SIZE=$(stat -c%s "$OFFLINE_APK")
+        MAGIC2=$(xxd -l 2 -p "$OFFLINE_APK")
+        if [ "$MAGIC2" != "504b" ]; then
+          echo "::error::Offline APK is not a valid zip/APK (magic: $MAGIC2)"
+          exit 1
+        fi
+
+        OFFLINE_FNAME="CMF-Coding-Agent-Offline-v${{ steps.version.outputs.VERSION }}.apk"
+        cp "$OFFLINE_APK" "release/$OFFLINE_FNAME"
+        OFFLINE_FINAL=$(stat -c%s "release/$OFFLINE_FNAME")
+
+        echo "offline_path=release/$OFFLINE_FNAME"     >> "$GITHUB_OUTPUT"
+        echo "offline_filename=$OFFLINE_FNAME"         >> "$GITHUB_OUTPUT"
+        echo "offline_size=$OFFLINE_FINAL"             >> "$GITHUB_OUTPUT"
+        echo "✅ Offline APK: $OFFLINE_FNAME ($OFFLINE_FINAL bytes)"
+
+        # Human-readable sizes
+        ONLINE_MB=$((ONLINE_FINAL / 1048576))
+        OFFLINE_MB=$((OFFLINE_FINAL / 1048576))
+        echo "online_mb=${ONLINE_MB}"   >> "$GITHUB_OUTPUT"
+        echo "offline_mb=${OFFLINE_MB}" >> "$GITHUB_OUTPUT"
+
+    # ── Create GitHub Release with both APKs ───────────────────────────
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
@@ -130,8 +171,29 @@ jobs:
         body: |
           ## Mobile CMF Coding Agent v${{ steps.version.outputs.VERSION }}
 
+          Both editions contain the complete Mobile CMF Coding Agent app and support secure in-app updates.
+
+          ---
+
+          ### Online Edition
+          **${{ steps.apk.outputs.online_mb }} MB · Recommended**
+
+          Start with the smaller APK. Core, Python, and Android runtime bundles are downloaded only when needed.
+
+          [Download Online APK](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/${{ steps.apk.outputs.online_filename }})
+
+          ---
+
+          ### Offline Edition
+          **${{ steps.apk.outputs.offline_mb }} MB · Everything included**
+
+          Includes the Core, Python, and Android runtime bundles for setup with limited or unavailable internet.
+
+          [Download Offline APK](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/${{ steps.apk.outputs.offline_filename }})
+
+          ---
+
           ### What's included
-          - Mobile CMF Coding Agent Android application (online variant)
           - AI coding workspace with Claude Code, DeepSeek Harness, and Antigravity CLI support
           - Ubuntu 20.04 LTS PRoot subsystem
           - On-device terminal and file management
@@ -152,15 +214,21 @@ jobs:
 
           ### Attribution
           Based on the upstream [Mobile Harness](https://github.com/techjarves/Mobile-Harness) project by Tech Jarves, licensed under MIT.
-        files: ${{ steps.apk.outputs.path }}
+        files: |
+          ${{ steps.apk.outputs.online_path }}
+          ${{ steps.apk.outputs.offline_path }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Release summary
       run: |
         echo ""
-        echo "RELEASE COMPLETE"
-        echo "Tag:     ${{ steps.version.outputs.tag }}"
-        echo "Version: ${{ steps.version.outputs.version }}"
-        echo "APK:     ${{ steps.apk.outputs.filename }}"
-        echo "Size:    ${{ steps.apk.outputs.size }} bytes"
+        echo "═══════════════════════════════════════════════════════"
+        echo "  RELEASE COMPLETE — BOTH EDITIONS"
+        echo "═══════════════════════════════════════════════════════"
+        echo "  Tag:        ${{ steps.version.outputs.tag }}"
+        echo "  Version:    ${{ steps.version.outputs.version }}"
+        echo "  Online:     ${{ steps.apk.outputs.online_filename }}  (${{ steps.apk.outputs.online_mb }} MB)"
+        echo "  Offline:    ${{ steps.apk.outputs.offline_filename }}  (${{ steps.apk.outputs.offline_mb }} MB)"
+        echo "  Release:    https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }}"
+        echo "═══════════════════════════════════════════════════════"
