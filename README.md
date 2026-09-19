@@ -1,5 +1,7 @@
 <div align="center">
 
+  <img src="docs/logo.svg" alt="CMF Coding Agent Logo" width="200" />
+
   # Mobile CMF Coding Agent
 
   ### *AI-powered mobile coding workspace*
@@ -11,6 +13,7 @@
   [![Android 9+](https://img.shields.io/badge/Android-9%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#system-requirements)
   [![ARM64](https://img.shields.io/badge/CPU-ARM64-5B8DEF?style=flat-square)](#system-requirements)
   [![MIT License](https://img.shields.io/badge/License-MIT-8B7CF6?style=flat-square&logo=opensourceinitiative&logoColor=white)](LICENSE)
+  [![Release](https://img.shields.io/github/v/release/sufiyan-sabeel/Cmf-ai-coding-agent?style=flat-square&color=3FB950)](https://github.com/sufiyan-sabeel/Cmf-ai-coding-agent/releases/latest)
 
 </div>
 
@@ -29,6 +32,20 @@
 Mobile CMF Coding Agent is a mobile AI-powered development workspace that brings desktop-class software development to your Android phone. It combines a modern Jetpack Compose UI with a self-contained Ubuntu 20.04 LTS subsystem, giving you a full coding environment without requiring root access, unlocked bootloaders, or external applications.
 
 CMF Coding Agent is a modified and derivative work based on the upstream [Mobile Harness](https://github.com/techjarves/Mobile-Harness) open-source project.
+
+<br />
+
+## Download
+
+Choose the edition that fits your setup. Both editions contain the complete app and support secure in-app updates.
+
+| | Edition | Size | Description |
+| :---: | :--- | :---: | :--- |
+| ⬇️ | **[Online Edition](https://github.com/sufiyan-sabeel/Cmf-ai-coding-agent/releases/latest)** | ~43 MB | **Recommended.** Start with the smaller APK. Runtime bundles are downloaded on first launch. |
+| ⬇️ | **[Offline Edition](https://github.com/sufiyan-sabeel/Cmf-ai-coding-agent/releases/latest)** | ~806 MB | Everything included. For devices with limited or unavailable internet. |
+
+> [!TIP]
+> **New to CMF Coding Agent?** Start with the **Online Edition**. It's smaller and will automatically download what it needs during setup.
 
 <br />
 
@@ -100,14 +117,16 @@ Key differentiators:
 | **Operating System** | Android 9.0 (API level 28) | Android 13.0+ (API level 33+) |
 | **CPU Architecture** | 64-bit ARM (`arm64-v8a`) | High-performance 8-Core ARM64 |
 | **RAM** | 4 GB | 8 GB or more |
-| **Free Storage** | 2.5 GB (Base Runtime) | 8.0 GB+ (For multi-language toolchains) |
-| **Network** | Stable connection for setup & API | High-speed Wi-Fi during initial setup |
+| **Free Storage** | 2.5 GB (Online) / 8.0 GB+ (Offline) | 8.0 GB+ (For multi-language toolchains) |
+| **Network** | Required for Online edition setup | Not required for Offline edition |
 
 <br />
 
 ## Installation
 
-Download the latest release APK from [GitHub Releases](https://github.com/sufiyan-sabeel/Cmf-ai-coding-agent/releases/latest).
+1. Download the latest release APK from [GitHub Releases](https://github.com/sufiyan-sabeel/Cmf-ai-coding-agent/releases/latest)
+2. Open the APK on your Android device to install
+3. Follow the onboarding wizard to configure your AI provider and toolchains
 
 ```text
 Target Architecture : ARM64 (arm64-v8a)
@@ -129,24 +148,27 @@ Minimum OS Level    : Android 9.0 (API 28)
 ### Clone & Build
 
 ```bash
-git clone https://github.com/sufiyan-sabeel/Cmf-ai-coding-agent.git
+git clone --recurse-submodules https://github.com/sufiyan-sabeel/Cmf-ai-coding-agent.git
 cd Cmf-ai-coding-agent
 
-# Build the standard ARM64 debug binary
-./gradlew assembleDebug
+# Build the Online edition (recommended)
+./gradlew assembleOnlineRelease
+
+# Build the Offline edition (includes all runtime bundles)
+./gradlew assembleOfflineRelease
 
 # Deploy directly to a connected test device
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/online/release/*.apk
 ```
 
 ### Quality Assurance & Testing
 
 ```bash
 # Run unit tests
-./gradlew testDebugUnitTest
+./gradlew testOnlineDebugUnitTest
 
 # Run static analysis linter
-./gradlew lintDebug
+./gradlew lintOnlineDebug
 ```
 
 <br />
@@ -228,6 +250,24 @@ flowchart TB
 ## Storage
 
 CMF Coding Agent uses app-private Android storage for all project data, runtime files, and conversation history. The base runtime requires approximately 2.5 GB of free storage. Optional toolchains (Python, Android, C/C++, PHP) consume additional space.
+
+<br />
+
+## CI/CD
+
+This project uses GitHub Actions for automated builds and releases:
+
+- **Trigger**: Push a version tag (e.g., `v1.0.0`) to start a release build
+- **Builds**: Both Online and Offline APKs are built and verified
+- **Release**: APKs are automatically uploaded to GitHub Releases
+- **Workflow**: [`.github/workflows/release.yml`](.github/workflows/release.yml)
+
+To create a new release:
+
+```bash
+git tag -a v1.1.0 -m "v1.1.0: Description"
+git push origin v1.1.0
+```
 
 <br />
 
