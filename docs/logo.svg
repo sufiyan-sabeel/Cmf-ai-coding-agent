@@ -1,57 +1,162 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0D1117;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#161B22;stop-opacity:1" />
+    <!-- Deep space background gradient -->
+    <radialGradient id="bgGrad" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#1a1f3a"/>
+      <stop offset="50%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#010409"/>
+    </radialGradient>
+
+    <!-- Neon blue glow -->
+    <linearGradient id="blueNeon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#58A6FF"/>
+      <stop offset="50%" stop-color="#79C0FF"/>
+      <stop offset="100%" stop-color="#58A6FF"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#58A6FF;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#3FB950;stop-opacity:1" />
+
+    <!-- Neon green accent -->
+    <linearGradient id="greenNeon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3FB950"/>
+      <stop offset="50%" stop-color="#56D364"/>
+      <stop offset="100%" stop-color="#3FB950"/>
     </linearGradient>
-    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#58A6FF;stop-opacity:0.3" />
-      <stop offset="100%" style="stop-color:#3FB950;stop-opacity:0.1" />
+
+    <!-- Electric purple -->
+    <linearGradient id="purpleNeon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A371F7"/>
+      <stop offset="50%" stop-color="#BC8CFF"/>
+      <stop offset="100%" stop-color="#A371F7"/>
     </linearGradient>
-    <filter id="shadow">
-      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#58A6FF" flood-opacity="0.3"/>
+
+    <!-- Horizontal gradient for text -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#58A6FF"/>
+      <stop offset="35%" stop-color="#A371F7"/>
+      <stop offset="65%" stop-color="#F778BA"/>
+      <stop offset="100%" stop-color="#3FB950"/>
+    </linearGradient>
+
+    <!-- Glow filters -->
+    <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
+
+    <filter id="strongGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Clip for rounded corners -->
+    <clipPath id="roundedBg">
+      <rect x="0" y="0" width="512" height="512" rx="80" ry="80"/>
+    </clipPath>
   </defs>
 
-  <!-- Background rounded square -->
-  <rect x="0" y="0" width="512" height="512" rx="96" ry="96" fill="url(#bg)"/>
+  <g clip-path="url(#roundedBg)">
+    <!-- Background -->
+    <rect width="512" height="512" fill="url(#bgGrad)"/>
 
-  <!-- Subtle glow ring -->
-  <circle cx="256" cy="220" r="140" fill="none" stroke="url(#glow)" stroke-width="2" opacity="0.5"/>
+    <!-- Subtle grid lines -->
+    <g opacity="0.06" stroke="#58A6FF" stroke-width="0.5">
+      <line x1="0" y1="128" x2="512" y2="128"/>
+      <line x1="0" y1="256" x2="512" y2="256"/>
+      <line x1="0" y1="384" x2="512" y2="384"/>
+      <line x1="128" y1="0" x2="128" y2="512"/>
+      <line x1="256" y1="0" x2="256" y2="512"/>
+      <line x1="384" y1="0" x2="384" y2="512"/>
+    </g>
 
-  <!-- Terminal/code bracket - left -->
-  <path d="M120 180 L80 220 L120 260" stroke="url(#accent)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#shadow)"/>
+    <!-- Orbital rings -->
+    <ellipse cx="256" cy="210" rx="160" ry="50" fill="none" stroke="url(#blueNeon)" stroke-width="1" opacity="0.15" transform="rotate(-20 256 210)"/>
+    <ellipse cx="256" cy="210" rx="160" ry="50" fill="none" stroke="url(#greenNeon)" stroke-width="1" opacity="0.15" transform="rotate(20 256 210)"/>
 
-  <!-- Terminal/code bracket - right -->
-  <path d="M392 180 L432 220 L392 260" stroke="url(#accent)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#shadow)"/>
+    <!-- Central glowing orb -->
+    <circle cx="256" cy="210" r="60" fill="none" stroke="url(#blueNeon)" stroke-width="2" opacity="0.1"/>
+    <circle cx="256" cy="210" r="40" fill="none" stroke="url(#purpleNeon)" stroke-width="1.5" opacity="0.15"/>
 
-  <!-- Center slash / code symbol -->
-  <line x1="280" y1="165" x2="232" y2="275" stroke="url(#accent)" stroke-width="12" stroke-linecap="round" filter="url(#shadow)"/>
+    <!-- Code brackets with neon glow -->
+    <!-- Left bracket < -->
+    <g filter="url(#strongGlow)">
+      <path d="M150 165 L105 210 L150 255"
+            stroke="url(#blueNeon)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
 
-  <!-- Dot accent top-right -->
-  <circle cx="310" cy="160" r="8" fill="#3FB950" filter="url(#shadow)"/>
+    <!-- Right bracket > -->
+    <g filter="url(#strongGlow)">
+      <path d="M362 165 L407 210 L362 255"
+            stroke="url(#greenNeon)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
 
-  <!-- AI neural nodes -->
-  <circle cx="200" cy="310" r="6" fill="#58A6FF" opacity="0.8"/>
-  <circle cx="256" cy="295" r="6" fill="#58A6FF" opacity="0.9"/>
-  <circle cx="312" cy="310" r="6" fill="#58A6FF" opacity="0.8"/>
-  <circle cx="228" cy="340" r="5" fill="#3FB950" opacity="0.7"/>
-  <circle cx="284" cy="340" r="5" fill="#3FB950" opacity="0.7"/>
+    <!-- Center slash / -->
+    <g filter="url(#strongGlow)">
+      <line x1="300" y1="155" x2="212" y2="265" stroke="url(#textGrad)" stroke-width="10" stroke-linecap="round"/>
+    </g>
 
-  <!-- Neural connections -->
-  <line x1="200" y1="310" x2="256" y2="295" stroke="#58A6FF" stroke-width="1.5" opacity="0.4"/>
-  <line x1="256" y1="295" x2="312" y2="310" stroke="#58A6FF" stroke-width="1.5" opacity="0.4"/>
-  <line x1="200" y1="310" x2="228" y2="340" stroke="#3FB950" stroke-width="1.5" opacity="0.3"/>
-  <line x1="312" y1="310" x2="284" y2="340" stroke="#3FB950" stroke-width="1.5" opacity="0.3"/>
-  <line x1="228" y1="340" x2="284" y2="340" stroke="#3FB950" stroke-width="1.5" opacity="0.3"/>
+    <!-- Pulse dot -->
+    <g filter="url(#strongGlow)">
+      <circle cx="310" cy="150" r="7" fill="#F778BA"/>
+      <circle cx="310" cy="150" r="12" fill="none" stroke="#F778BA" stroke-width="1" opacity="0.4"/>
+    </g>
 
-  <!-- CMF text -->
-  <text x="256" y="405" text-anchor="middle" font-family="'SF Pro Display', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="700" fill="url(#accent)" letter-spacing="6">CMF</text>
+    <!-- AI neural network constellation -->
+    <g filter="url(#neonGlow)" opacity="0.9">
+      <!-- Main nodes -->
+      <circle cx="190" cy="310" r="5" fill="#58A6FF"/>
+      <circle cx="256" cy="290" r="6" fill="#A371F7"/>
+      <circle cx="322" cy="310" r="5" fill="#3FB950"/>
 
-  <!-- CODING AGENT subtitle -->
-  <text x="256" y="440" text-anchor="middle" font-family="'SF Pro Text', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#8B949E" letter-spacing="4">CODING AGENT</text>
+      <!-- Secondary nodes -->
+      <circle cx="160" cy="345" r="4" fill="#58A6FF" opacity="0.7"/>
+      <circle cx="220" cy="350" r="3.5" fill="#79C0FF" opacity="0.6"/>
+      <circle cx="292" cy="350" r="3.5" fill="#56D364" opacity="0.6"/>
+      <circle cx="352" cy="345" r="4" fill="#3FB950" opacity="0.7"/>
+
+      <!-- Tiny sparkles -->
+      <circle cx="140" cy="325" r="1.5" fill="#BC8CFF" opacity="0.5"/>
+      <circle cx="372" cy="325" r="1.5" fill="#F778BA" opacity="0.5"/>
+      <circle cx="256" cy="370" r="2" fill="#58A6FF" opacity="0.4"/>
+
+      <!-- Connection lines -->
+      <line x1="190" y1="310" x2="256" y2="290" stroke="#58A6FF" stroke-width="1.2" opacity="0.3"/>
+      <line x1="256" y1="290" x2="322" y2="310" stroke="#3FB950" stroke-width="1.2" opacity="0.3"/>
+      <line x1="190" y1="310" x2="160" y2="345" stroke="#58A6FF" stroke-width="0.8" opacity="0.2"/>
+      <line x1="322" y1="310" x2="352" y2="345" stroke="#3FB950" stroke-width="0.8" opacity="0.2"/>
+      <line x1="160" y1="345" x2="220" y2="350" stroke="#79C0FF" stroke-width="0.6" opacity="0.15"/>
+      <line x1="220" y1="350" x2="292" y2="350" stroke="#56D364" stroke-width="0.6" opacity="0.15"/>
+      <line x1="292" y1="350" x2="352" y2="345" stroke="#3FB950" stroke-width="0.6" opacity="0.15"/>
+      <line x1="190" y1="310" x2="140" y2="325" stroke="#BC8CFF" stroke-width="0.5" opacity="0.15"/>
+      <line x1="322" y1="310" x2="372" y2="325" stroke="#F778BA" stroke-width="0.5" opacity="0.15"/>
+    </g>
+
+    <!-- CMF text with gradient -->
+    <text x="256" y="415" text-anchor="middle"
+          font-family="'SF Pro Display', 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif"
+          font-size="58" font-weight="800" fill="url(#textGrad)" letter-spacing="8"
+          filter="url(#softGlow)">CMF</text>
+
+    <!-- CODING AGENT subtitle -->
+    <text x="256" y="448" text-anchor="middle"
+          font-family="'SF Pro Text', 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif"
+          font-size="16" font-weight="500" fill="#8B949E" letter-spacing="8"
+          opacity="0.8">CODING AGENT</text>
+
+    <!-- Version tag -->
+    <text x="256" y="478" text-anchor="middle"
+          font-family="'SF Mono', 'Fira Code', 'Consolas', monospace"
+          font-size="11" font-weight="400" fill="#484F58" letter-spacing="2">v1.0.0</text>
+  </g>
 </svg>
