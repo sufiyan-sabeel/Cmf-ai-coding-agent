@@ -44,11 +44,10 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
     - name: Install Android NDK and CMake
       run: |
+        # ubuntu-latest already has Android SDK pre-installed
+        yes | sdkmanager --licenses > /dev/null 2>&1 || true
         sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
         echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> "$GITHUB_ENV"
 
