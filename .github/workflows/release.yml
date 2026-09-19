@@ -63,13 +63,33 @@ jobs:
     - name: Make Gradle executable
       run: chmod +x gradlew
 
-    - name: Create placeholder runtime assets for online build
+    - name: Download runtime bundles for offline build
       run: |
         mkdir -p dist/runtime-bundles
-        # The online variant's mergeAssets depends on prepareBundledAgentAssets.
-        # Create a zero-byte placeholder so the Sync task succeeds;
-        # the real bundle is downloaded at install time.
+
+        # Placeholder for online variant (downloaded at install time)
         touch dist/runtime-bundles/pocketdev-agy-arm64-2026.09.1.tar.zst
+
+        # Download runtime bundles for offline variant from upstream releases
+        RUNTIME_BASE="https://github.com/techjarves/Mobile-Harness/releases/download/runtime-2026.09.4"
+        BUNDLES=(
+          "pocketdev-core-arm64-2026.09.5.tar.zst"
+          "pocketdev-claude-arm64-2026.09.1.tar.zst"
+          "pocketdev-python-arm64-2026.09.2.tar.zst"
+          "pocketdev-android-arm64-2026.09.1.tar.zst"
+          "pocketdev-dsh-arm64-2026.09.1.tar.zst"
+        )
+
+        for BUNDLE in "${BUNDLES[@]}"; do
+          echo "Downloading $BUNDLE..."
+          curl -fSL -o "dist/runtime-bundles/$BUNDLE" "$RUNTIME_BASE/$BUNDLE" || {
+            echo "::warning::Failed to download $BUNDLE — offline variant will lack this bundle"
+          }
+        done
+
+        echo ""
+        echo "Runtime bundles in dist/runtime-bundles/:"
+        ls -lh dist/runtime-bundles/
 
     - name: Run unit tests
       run: ./gradlew testOnlineDebugUnitTest --no-daemon
