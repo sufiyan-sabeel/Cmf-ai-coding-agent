@@ -1,0 +1,15 @@
+Mobile CMF Coding Agent is a local-first AI development workspace built for ARM64 Android phones.
+
+Chat with coding agents, edit projects, execute real Linux commands, and preview live web servers — all directly on your phone. CMF Coding Agent combines modern Jetpack Compose UI with a self-contained Ubuntu 20.04 LTS subsystem, giving you a desktop-class software development environment in your pocket without requiring root access, unlocked bootloaders, or external applications.
+
+Features:
+- Autonomous agent coding with Claude Code, DeepSeek Harness, and Antigravity CLI
+- Isolated Linux subsystem with Node.js, npm, Git, and essential tooling
+- Instant web preview with sandboxed WebView
+- Keystore-grade AES-256 GCM encryption for API keys
+- Persistent project sessions with chat history
+- Native file workflow with Android Storage Access Framework
+- On-device Android APK builds without ADB
+- Optional Python, C/C++, PHP, and Android toolchains
+
+Important: CMF Coding Agent is experimental alpha software. PRoot is not a hardened security sandbox. Open only projects and dependencies you trust. Provider capabilities vary, and some models may not support every coding agent tool or streaming event.

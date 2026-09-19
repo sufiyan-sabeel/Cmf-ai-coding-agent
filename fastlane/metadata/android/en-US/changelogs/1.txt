@@ -1,0 +1,6 @@
+Initial CMF Coding Agent release:
+- AI-powered mobile coding workspace
+- Claude Code, DeepSeek Harness, and Antigravity CLI integration
+- Ubuntu 20.04 LTS PRoot subsystem
+- On-device Android builds
+- Keystore-grade encryption

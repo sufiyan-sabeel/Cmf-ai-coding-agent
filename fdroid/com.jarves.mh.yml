@@ -1,0 +1,31 @@
+Categories:
+  - Development
+  - System
+License: MIT
+AuthorName: UmaizSufiyan
+SourceCode: https://github.com/sufiyan-sabeel/Cmf-ai-coding-agent
+IssueTracker: https://github.com/sufiyan-sabeel/Cmf-ai-coding-agent/issues
+Changelog: https://github.com/sufiyan-sabeel/Cmf-ai-coding-agent/releases
+
+AutoName: CMF Coding Agent
+
+RepoType: git
+Repo: https://github.com/sufiyan-sabeel/Cmf-ai-coding-agent.git
+
+AntiFeatures:
+  - NonFreeNet
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: v1.0.0
+    subdir: app
+    ndk: r26b
+    submodules: true
+    gradle:
+      - yes
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1
