@@ -64,30 +64,21 @@ jobs:
       run: chmod +x gradlew
 
     # ── Signing keystore ──────────────────────────────────────────────
-    # Ensure a signing keystore exists so release builds are NEVER unsigned.
-    # If MH_UPLOAD_* env vars are set, app/build.gradle.kts uses those.
-    # Otherwise the release build type falls back to the debug signing config,
-    # which uses ~/.android/debug.keystore by default.
-    - name: Prepare signing keystore
+    # We sign APKs AFTER building using jarsigner, not Gradle signing.
+    # This avoids all the complexity of Gradle's signingConfig system.
+    - name: Generate signing keystore
       run: |
-        DEBUG_KS="$HOME/.android/debug.keystore"
-        mkdir -p "$(dirname "$DEBUG_KS")"
-        if [ ! -f "$DEBUG_KS" ]; then
-          echo "Generating debug keystore..."
-          keytool -genkeypair -v \
-            -keystore "$DEBUG_KS" \
-            -alias androiddebugkey \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass android \
-            -keypass android \
-            -dname "CN=Android Debug,O=Android,C=US"
-          echo "Debug keystore created at $DEBUG_KS"
-        else
-          echo "Debug keystore already exists at $DEBUG_KS"
-        fi
-        ls -la "$DEBUG_KS"
+        keytool -genkeypair -v \
+          -keystore release.keystore \
+          -alias cmf \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -storepass cmf123456 \
+          -keypass cmf123456 \
+          -dname "CN=CMF Coding Agent, OU=Development, O=CMF, L=Unknown, ST=Unknown, C=US"
+        echo "Keystore generated."
+        ls -la release.keystore
 
     - name: Download runtime bundles for offline build
       run: |
@@ -126,6 +117,35 @@ jobs:
 
     - name: Build Offline release APK
       run: ./gradlew assembleOfflineRelease --no-daemon
+
+    # ── Sign APKs post-build using jarsigner ──────────────────────────
+    - name: Sign APKs with jarsigner
+      run: |
+        for APK in app/build/outputs/apk/online/release/*.apk app/build/outputs/apk/offline/release/*.apk; do
+          if [ ! -f "$APK" ]; then continue; fi
+          echo "Signing: $APK"
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore release.keystore \
+            -storepass cmf123456 \
+            -keypass cmf123456 \
+            "$APK" cmf
+          echo "✅ Signed: $APK"
+        done
+
+        # Zip-align the signed APKs using build-tools
+        BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools/" | sort -V | tail -1)"
+        echo "Using build-tools: $BUILD_TOOLS"
+
+        for APK in app/build/outputs/apk/online/release/*.apk app/build/outputs/apk/offline/release/*.apk; do
+          if [ ! -f "$APK" ]; then continue; fi
+          ALIGNED="${APK%.apk}-aligned.apk"
+          "$BUILD_TOOLS/zipalign" -v -p 4 "$APK" "$ALIGNED" >/dev/null 2>&1
+          mv "$ALIGNED" "$APK"
+          echo "✅ Aligned: $APK"
+        done
+
+        echo ""
+        echo "All APKs signed and aligned."
 
     # ── Locate, rename, and verify APKs ────────────────────────────────
     - name: Locate and verify APKs
