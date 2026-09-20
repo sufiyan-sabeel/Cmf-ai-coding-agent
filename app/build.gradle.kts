@@ -128,8 +128,13 @@ android {
         }
         release {
             isMinifyEnabled = false
-            if (hasUploadSigning) {
-                signingConfig = signingConfigs.getByName("upload")
+            // ALWAYS sign release builds — unsigned APKs cannot be installed.
+            // Use the upload (CI / production) keystore when available,
+            // otherwise fall back to the debug keystore.
+            signingConfig = if (hasUploadSigning) {
+                signingConfigs.getByName("upload")
+            } else {
+                signingConfigs.getByName("debug")
             }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

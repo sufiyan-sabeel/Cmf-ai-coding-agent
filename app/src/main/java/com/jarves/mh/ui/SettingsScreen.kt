@@ -793,6 +793,21 @@ private fun LegacySettingsScreen(
                         ) {
                             Text("Instagram — @umaizsufiyan.78")
                         }
+
+                        // Email Button
+                        OutlinedButton(
+                            onClick = {
+                                runCatching {
+                                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                        data = Uri.parse("mailto:riyazo65ckm@gmail.com")
+                                    }
+                                    context.startActivity(intent)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("riyazo65ckm@gmail.com")
+                        }
                     }
                 }
                 Spacer(Modifier.height(16.dp))

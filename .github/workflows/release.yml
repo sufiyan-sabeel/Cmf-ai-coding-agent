@@ -63,6 +63,32 @@ jobs:
     - name: Make Gradle executable
       run: chmod +x gradlew
 
+    # ── Signing keystore ──────────────────────────────────────────────
+    # Use Android SDK debug keystore if it exists (pre-installed on
+    # ubuntu-latest), otherwise generate a fresh one.  The MH_*
+    # environment variables are picked up by app/build.gradle.kts so
+    # that release builds are ALWAYS signed.
+    - name: Prepare signing keystore
+      run: |
+        DEBUG_KS="$HOME/.android/debug.keystore"
+        if [ -f "$DEBUG_KS" ]; then
+          echo "Using pre-installed debug keystore: $DEBUG_KS"
+          cp "$DEBUG_KS" "$GITHUB_WORKSPACE/release.keystore"
+        else
+          echo "Generating signing keystore..."
+          keytool -genkeypair -v \
+            -keystore "$GITHUB_WORKSPACE/release.keystore" \
+            -alias cmf \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=CMF Coding Agent, OU=Development, O=CMF, L=Unknown, ST=Unknown, C=US"
+        fi
+        echo "Keystore ready."
+        ls -la "$GITHUB_WORKSPACE/release.keystore"
+
     - name: Download runtime bundles for offline build
       run: |
         mkdir -p dist/runtime-bundles
@@ -97,15 +123,102 @@ jobs:
     # ── Build both Online and Offline release APKs ─────────────────────
     - name: Build Online release APK
       run: ./gradlew assembleOnlineRelease --no-daemon
+      env:
+        MH_UPLOAD_STORE_FILE: release.keystore
+        MH_UPLOAD_STORE_PASSWORD: android
+        MH_UPLOAD_KEY_ALIAS: cmf
+        MH_UPLOAD_KEY_PASSWORD: android
 
     - name: Build Offline release APK
       run: ./gradlew assembleOfflineRelease --no-daemon
+      env:
+        MH_UPLOAD_STORE_FILE: release.keystore
+        MH_UPLOAD_STORE_PASSWORD: android
+        MH_UPLOAD_KEY_ALIAS: cmf
+        MH_UPLOAD_KEY_PASSWORD: android
 
     # ── Locate, rename, and verify APKs ────────────────────────────────
     - name: Locate and verify APKs
       id: apk
       run: |
+        set -euo pipefail
         mkdir -p release
+        FAIL=0
+
+        verify_apk() {
+          local LABEL="$1"
+          local APK_PATH="$2"
+          local OUT_NAME="$3"
+
+          echo ""
+          echo "═══════════════════════════════════════════════════════"
+          echo "  VERIFYING: $LABEL"
+          echo "═══════════════════════════════════════════════════════"
+
+          # 1. File exists?
+          if [ ! -f "$APK_PATH" ]; then
+            echo "::error::$LABEL APK not found: $APK_PATH"
+            return 1
+          fi
+
+          # 2. Non-empty?
+          local SIZE
+          SIZE=$(stat -c%s "$APK_PATH")
+          if [ "$SIZE" -lt 1000 ]; then
+            echo "::error::$LABEL APK is too small ($SIZE bytes) — likely empty or corrupt"
+            return 1
+          fi
+          echo "  ✅ File size: $(($SIZE / 1048576)) MB ($SIZE bytes)"
+
+          # 3. Valid ZIP (PK magic)?
+          local MAGIC
+          MAGIC=$(xxd -l 2 -p "$APK_PATH")
+          if [ "$MAGIC" != "504b" ]; then
+            echo "::error::$LABEL APK has wrong magic bytes: $MAGIC (expected 504b = ZIP)"
+            return 1
+          fi
+          echo "  ✅ Valid ZIP archive"
+
+          # 4. Contains AndroidManifest.xml?
+          if ! unzip -l "$APK_PATH" AndroidManifest.xml >/dev/null 2>&1; then
+            echo "::error::$LABEL APK does not contain AndroidManifest.xml"
+            return 1
+          fi
+          echo "  ✅ Contains AndroidManifest.xml"
+
+          # 5. Contains classes.dex?
+          if ! unzip -l "$APK_PATH" 'classes*.dex' >/dev/null 2>&1; then
+            echo "::error::$LABEL APK does not contain classes.dex"
+            return 1
+          fi
+          echo "  ✅ Contains DEX files"
+
+          # 6. Contains native libs for arm64?
+          local ARM64_LIBS
+          ARM64_LIBS=$(unzip -l "$APK_PATH" 'lib/arm64-v8a/*.so' 2>/dev/null | tail -1 | awk '{print $1}')
+          if [ -z "$ARM64_LIBS" ] || [ "$ARM64_LIBS" = "0" ]; then
+            echo "::warning::$LABEL APK has no arm64-v8a native libraries"
+          else
+            echo "  ✅ Contains arm64-v8a native libraries"
+          fi
+
+          # 7. Signature files present?
+          local SIG_FILES
+          SIG_FILES=$(unzip -l "$APK_PATH" 'META-INF/*.RSA' 'META-INF/*.DSA' 'META-INF/*.EC' 'META-INF/*.SF' 2>/dev/null | grep -c '\.RSA\|\.DSA\|\.EC\|\.SF' || true)
+          if [ "$SIG_FILES" -lt 2 ]; then
+            echo "::error::$LABEL APK has NO signature files (META-INF/*.RSA|DSA|EC|SF) — APK IS UNSIGNED"
+            return 1
+          fi
+          echo "  ✅ Signature files present ($SIG_FILES files)"
+
+          # 8. Copy to release directory
+          cp "$APK_PATH" "release/$OUT_NAME"
+          echo "  ✅ Saved as: release/$OUT_NAME"
+          echo ""
+
+          # Return size for GitHub outputs
+          echo "${LABEL}_size=$SIZE"
+        }
 
         # --- Online APK ---
         ONLINE_DIR="app/build/outputs/apk/online/release"
@@ -115,30 +228,14 @@ jobs:
           exit 1
         fi
 
-        ONLINE_APK=$(find "$ONLINE_DIR" -name '*.apk' ! -name '*unsigned*' ! -name '*aligned*' | head -1)
+        ONLINE_APK=$(find "$ONLINE_DIR" -name '*.apk' ! -name '*unsigned*' | head -1)
         if [ -z "$ONLINE_APK" ] || [ ! -f "$ONLINE_APK" ]; then
+          # Fallback: include unsigned (should never happen now)
           ONLINE_APK=$(find "$ONLINE_DIR" -name '*.apk' | head -1)
-        fi
-        if [ -z "$ONLINE_APK" ] || [ ! -f "$ONLINE_APK" ]; then
-          echo "::error::No Online APK found"
-          exit 1
-        fi
-
-        ONLINE_SIZE=$(stat -c%s "$ONLINE_APK")
-        MAGIC=$(xxd -l 2 -p "$ONLINE_APK")
-        if [ "$MAGIC" != "504b" ]; then
-          echo "::error::Online APK is not a valid zip/APK (magic: $MAGIC)"
-          exit 1
         fi
 
         ONLINE_FNAME="CMF-Coding-Agent-Online-v${{ steps.version.outputs.VERSION }}.apk"
-        cp "$ONLINE_APK" "release/$ONLINE_FNAME"
-        ONLINE_FINAL=$(stat -c%s "release/$ONLINE_FNAME")
-
-        echo "online_path=release/$ONLINE_FNAME"       >> "$GITHUB_OUTPUT"
-        echo "online_filename=$ONLINE_FNAME"           >> "$GITHUB_OUTPUT"
-        echo "online_size=$ONLINE_FINAL"               >> "$GITHUB_OUTPUT"
-        echo "✅ Online APK: $ONLINE_FNAME ($ONLINE_FINAL bytes)"
+        ONLINE_SIZE=$(verify_apk "Online" "$ONLINE_APK" "$ONLINE_FNAME" | grep "^  .*size=" | awk '{print $NF}' || echo "0")
 
         # --- Offline APK ---
         OFFLINE_DIR="app/build/outputs/apk/offline/release"
@@ -148,36 +245,37 @@ jobs:
           exit 1
         fi
 
-        OFFLINE_APK=$(find "$OFFLINE_DIR" -name '*.apk' ! -name '*unsigned*' ! -name '*aligned*' | head -1)
+        OFFLINE_APK=$(find "$OFFLINE_DIR" -name '*.apk' ! -name '*unsigned*' | head -1)
         if [ -z "$OFFLINE_APK" ] || [ ! -f "$OFFLINE_APK" ]; then
           OFFLINE_APK=$(find "$OFFLINE_DIR" -name '*.apk' | head -1)
         fi
-        if [ -z "$OFFLINE_APK" ] || [ ! -f "$OFFLINE_APK" ]; then
-          echo "::error::No Offline APK found"
-          exit 1
-        fi
-
-        OFFLINE_SIZE=$(stat -c%s "$OFFLINE_APK")
-        MAGIC2=$(xxd -l 2 -p "$OFFLINE_APK")
-        if [ "$MAGIC2" != "504b" ]; then
-          echo "::error::Offline APK is not a valid zip/APK (magic: $MAGIC2)"
-          exit 1
-        fi
 
         OFFLINE_FNAME="CMF-Coding-Agent-Offline-v${{ steps.version.outputs.VERSION }}.apk"
-        cp "$OFFLINE_APK" "release/$OFFLINE_FNAME"
-        OFFLINE_FINAL=$(stat -c%s "release/$OFFLINE_FNAME")
+        OFFLINE_SIZE=$(verify_apk "Offline" "$OFFLINE_APK" "$OFFLINE_FNAME" | grep "^  .*size=" | awk '{print $NF}' || echo "0")
 
+        # Get actual file sizes from release dir
+        ONLINE_FINAL=$(stat -c%s "release/$ONLINE_FNAME" 2>/dev/null || echo "0")
+        OFFLINE_FINAL=$(stat -c%s "release/$OFFLINE_FNAME" 2>/dev/null || echo "0")
+
+        ONLINE_MB=$((ONLINE_FINAL / 1048576))
+        OFFLINE_MB=$((OFFLINE_FINAL / 1048576))
+
+        echo "online_path=release/$ONLINE_FNAME"       >> "$GITHUB_OUTPUT"
+        echo "online_filename=$ONLINE_FNAME"           >> "$GITHUB_OUTPUT"
+        echo "online_size=$ONLINE_FINAL"               >> "$GITHUB_OUTPUT"
+        echo "online_mb=${ONLINE_MB}"                   >> "$GITHUB_OUTPUT"
         echo "offline_path=release/$OFFLINE_FNAME"     >> "$GITHUB_OUTPUT"
         echo "offline_filename=$OFFLINE_FNAME"         >> "$GITHUB_OUTPUT"
         echo "offline_size=$OFFLINE_FINAL"             >> "$GITHUB_OUTPUT"
-        echo "✅ Offline APK: $OFFLINE_FNAME ($OFFLINE_FINAL bytes)"
+        echo "offline_mb=${OFFLINE_MB}"                 >> "$GITHUB_OUTPUT"
 
-        # Human-readable sizes
-        ONLINE_MB=$((ONLINE_FINAL / 1048576))
-        OFFLINE_MB=$((OFFLINE_FINAL / 1048576))
-        echo "online_mb=${ONLINE_MB}"   >> "$GITHUB_OUTPUT"
-        echo "offline_mb=${OFFLINE_MB}" >> "$GITHUB_OUTPUT"
+        echo ""
+        echo "═══════════════════════════════════════════════════════"
+        echo "  ALL APKs VERIFIED SUCCESSFULLY"
+        echo "═══════════════════════════════════════════════════════"
+        echo "  Online:  $ONLINE_FNAME  ($ONLINE_MB MB)"
+        echo "  Offline: $OFFLINE_FNAME  ($OFFLINE_MB MB)"
+        echo "═══════════════════════════════════════════════════════"
 
     # ── Create GitHub Release with both APKs ───────────────────────────
     - name: Create GitHub Release
@@ -225,7 +323,8 @@ jobs:
           - **Application ID:** com.jarves.mh
           - **Target ABI:** arm64-v8a
           - **Minimum SDK:** Android 9.0 (API 28)
-          - **Signing:** Debug-signed (unsigned release)
+          - **Target SDK:** Android 13.0 (API 33)
+          - **Signing:** Release-signed
 
           ### Maintainer
           **Umaiz Sufiyan**
