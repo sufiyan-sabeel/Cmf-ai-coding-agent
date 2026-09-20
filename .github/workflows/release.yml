@@ -64,30 +64,30 @@ jobs:
       run: chmod +x gradlew
 
     # ── Signing keystore ──────────────────────────────────────────────
-    # Use Android SDK debug keystore if it exists (pre-installed on
-    # ubuntu-latest), otherwise generate a fresh one.  The MH_*
-    # environment variables are picked up by app/build.gradle.kts so
-    # that release builds are ALWAYS signed.
+    # Ensure a signing keystore exists so release builds are NEVER unsigned.
+    # If MH_UPLOAD_* env vars are set, app/build.gradle.kts uses those.
+    # Otherwise the release build type falls back to the debug signing config,
+    # which uses ~/.android/debug.keystore by default.
     - name: Prepare signing keystore
       run: |
         DEBUG_KS="$HOME/.android/debug.keystore"
-        if [ -f "$DEBUG_KS" ]; then
-          echo "Using pre-installed debug keystore: $DEBUG_KS"
-          cp "$DEBUG_KS" "$GITHUB_WORKSPACE/release.keystore"
-        else
-          echo "Generating signing keystore..."
+        mkdir -p "$(dirname "$DEBUG_KS")"
+        if [ ! -f "$DEBUG_KS" ]; then
+          echo "Generating debug keystore..."
           keytool -genkeypair -v \
-            -keystore "$GITHUB_WORKSPACE/release.keystore" \
-            -alias cmf \
+            -keystore "$DEBUG_KS" \
+            -alias androiddebugkey \
             -keyalg RSA \
             -keysize 2048 \
             -validity 10000 \
             -storepass android \
             -keypass android \
-            -dname "CN=CMF Coding Agent, OU=Development, O=CMF, L=Unknown, ST=Unknown, C=US"
+            -dname "CN=Android Debug,O=Android,C=US"
+          echo "Debug keystore created at $DEBUG_KS"
+        else
+          echo "Debug keystore already exists at $DEBUG_KS"
         fi
-        echo "Keystore ready."
-        ls -la "$GITHUB_WORKSPACE/release.keystore"
+        ls -la "$DEBUG_KS"
 
     - name: Download runtime bundles for offline build
       run: |
@@ -123,19 +123,9 @@ jobs:
     # ── Build both Online and Offline release APKs ─────────────────────
     - name: Build Online release APK
       run: ./gradlew assembleOnlineRelease --no-daemon
-      env:
-        MH_UPLOAD_STORE_FILE: release.keystore
-        MH_UPLOAD_STORE_PASSWORD: android
-        MH_UPLOAD_KEY_ALIAS: cmf
-        MH_UPLOAD_KEY_PASSWORD: android
 
     - name: Build Offline release APK
       run: ./gradlew assembleOfflineRelease --no-daemon
-      env:
-        MH_UPLOAD_STORE_FILE: release.keystore
-        MH_UPLOAD_STORE_PASSWORD: android
-        MH_UPLOAD_KEY_ALIAS: cmf
-        MH_UPLOAD_KEY_PASSWORD: android
 
     # ── Locate, rename, and verify APKs ────────────────────────────────
     - name: Locate and verify APKs
